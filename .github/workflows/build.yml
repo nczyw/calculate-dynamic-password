@@ -1,0 +1,134 @@
+name: Manual Build
+run-name: Build ${{ inputs.ref_type }} ${{ inputs.ref_value }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref_type:
+        description: 'Reference type'
+        required: true
+        type: choice
+        options:
+          - branch
+          - tag
+        default: branch
+      ref_value:
+        description: 'Branch name or tag name'
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref_value }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build (Windows)
+        run: cargo build --release
+
+      - name: Prepare artifact
+        shell: pwsh
+        run: |
+          $name = cargo metadata --no-deps --format-version 1 |
+            ConvertFrom-Json |
+            % { $_.packages[0].name }
+          mkdir dist
+          Copy-Item `
+          "target/release/$name.exe" `
+          "dist/$name-windows-x86_64.exe"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*
+          retention-days: 7
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref_value }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build (Linux)
+        run: cargo build --release
+
+      - name: Prepare artifact
+        run: |
+          NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          mkdir -p dist
+          cp \
+            target/release/$NAME \
+            dist/${NAME}-linux-x86_64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*
+          retention-days: 7
+
+  build-macos:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref_value }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: |
+            x86_64-apple-darwin
+            aarch64-apple-darwin
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build macOS Intel
+        run: cargo build --release --target x86_64-apple-darwin
+
+      - name: Build macOS ARM
+        run: cargo build --release --target aarch64-apple-darwin
+
+      - name: Prepare artifact
+        run: |
+          NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          mkdir -p dist
+          cp \
+            target/x86_64-apple-darwin/release/$NAME \
+            dist/${NAME}-macos-x86_64
+          cp \
+            target/aarch64-apple-darwin/release/$NAME \
+            dist/${NAME}-macos-arm64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/*
+          retention-days: 7

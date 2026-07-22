@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Password Generator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='25' y='20' width='50' height='60' rx='8' fill='%23667eea'/><rect x='30' y='20' width='40' height='25' rx='8' fill='%23764ba2'/><path d='M40 65 Q50 75 60 65' stroke='%23ffffff' stroke-width='4' fill='none'/><rect x='42' y='50' width='16' height='20' fill='%23ffffff'/><rect x='46' y='54' width='8' height='8' rx='1' fill='%23667eea'/></svg>" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: gradientShift 8s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .lang-toggle {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .lang-toggle-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .lang-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-label .required {
+            color: #ff6b6b;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-input:focus {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+
+        .form-input:-webkit-autofill,
+        .form-input:-webkit-autofill:hover,
+        .form-input:-webkit-autofill:focus,
+        .form-input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.15) inset !important;
+            -webkit-text-fill-color: #fff !important;
+        }
+
+        .name-select-container {
+            position: relative;
+        }
+
+        .name-input {
+            padding-right: 80px;
+        }
+
+        .refresh-btn {
+            position: absolute;
+            right: 40px;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            border-radius: 0;
+            gap: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .name-dropdown-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .name-dropdown-btn svg {
+            width: 16px;
+            height: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: transform 0.3s ease;
+        }
+
+        .name-dropdown-btn.open svg {
+            transform: rotate(180deg);
+        }
+
+        .refresh-btn svg {
+            width: 16px;
+            height: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: transform 0.3s ease;
+        }
+
+        .refresh-btn:hover svg {
+            color: rgba(255, 255, 255, 0.9);
+            transform: rotate(180deg);
+        }
+
+        .name-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+
+        .name-dropdown.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .name-dropdown-option {
+            padding: 12px 18px;
+            cursor: pointer;
+            color: #333;
+            font-size: 16px;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .name-dropdown-option:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .name-dropdown-option .name-option-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .name-dropdown-option .name-option-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+        }
+
+        .name-dropdown-option:hover .name-option-btn {
+            opacity: 1;
+        }
+
+        .name-dropdown-option .name-option-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .name-dropdown-option .name-option-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .name-dropdown-option .name-option-btn-remove {
+            color: #fc8181;
+        }
+
+        .name-dropdown-option:first-child {
+            border-radius: 12px 12px 0 0;
+        }
+
+        .name-dropdown-option:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+
+        .name-dropdown-option:first-child:last-child {
+            border-radius: 12px;
+        }
+
+        .name-dropdown .loading {
+            padding: 12px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .salt-info {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .add-salt-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-salt-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .add-salt-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: rgba(72, 187, 120, 0.9);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .toast.error {
+            background: rgba(255, 107, 107, 0.9);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .form-input.error {
+            background: rgba(255, 107, 107, 0.2);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .optional-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        .optional-section .section-title {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(238, 90, 90, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 90, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s ease;
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result.error {
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .result.success {
+            background: rgba(72, 187, 120, 0.2);
+        }
+
+        .result-title {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+        }
+
+        .result-time {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+            font-family: monospace;
+        }
+
+        .result-password {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-error-text {
+            font-size: 14px;
+            color: #ff6b6b;
+        }
+
+        .copy-btn {
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .copy-btn.copied {
+            background: rgba(72, 187, 120, 0.5);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-tooltip {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-size: 11px;
+            color: #fff;
+            text-align: center;
+            line-height: 16px;
+            margin-left: 6px;
+            cursor: help;
+            position: relative;
+        }
+
+        .info-tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .info-tooltip:hover::after {
+            opacity: 1;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .footer p {
+            margin: 0;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .result-password {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-toggle">
+            <button class="lang-toggle-btn" id="langToggleBtn">English</button>
+        </div>
+
+        <div class="header">
+            <h1 id="title">Dynamic Password Generator</h1>
+            <p id="subtitle">UTC-based time-sensitive password generation</p>
+        </div>
+
+        <form id="passwordForm">
+            <div class="form-group">
+                <label class="form-label">
+                    <span id="labelName">Name</span>
+                    <span class="info-tooltip" id="tooltipName" data-tooltip="Select from predefined names or enter a custom value">?</span>
+                </label>
+                <div class="name-select-container">
+                    <input 
+                        type="text" 
+                        id="nameInput" 
+                        class="form-input name-input" 
+                        placeholder="Enter or select a name..."
+                        autocomplete="off"
+                    >
+                    <button type="button" class="refresh-btn" id="refreshSaltsBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    </button>
+                    <button type="button" class="name-dropdown-btn" id="nameDropdownBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="name-dropdown" id="nameDropdown">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span id="labelSalt">Salt</span> <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="saltInput" 
+                    class="form-input" 
+                    placeholder="Enter the salt value..."
+                    autocomplete="off"
+                >
+                <div id="saltError" class="error-message">Salt is required</div>
+            </div>
+
+            <button type="button" class="add-salt-btn" id="addSaltBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span id="addSaltBtnText">Add this name-salt pair</span>
+            </button>
+
+            <div class="optional-section">
+                <div class="section-title" id="sectionOptional">Optional Parameters</div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <span id="labelOffset">Offset (hours)</span>
+                        <span class="info-tooltip" id="tooltipOffset" data-tooltip="Relative to UTC time, supports negative values">?</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="offset" 
+                        class="form-input" 
+                        placeholder="e.g., -1, 0, 1"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <span id="labelTime">Time (YYYYMMDDHH)</span>
+                        <span class="info-tooltip" id="tooltipTime" data-tooltip="Format: YYYYMMDDHH (10 digits), e.g., 2026010814">?</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="time" 
+                        class="form-input" 
+                        placeholder="YYYYMMDDHH"
+                        maxlength="10"
+                    >
+                </div>
+
+                <div id="mutualError" class="error-message">Offset and time cannot be specified simultaneously</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="calculateBtn">
+                <span>Calculate Password</span>
+            </button>
+        </form>
+
+        <div id="result" class="result">
+            <div class="result-title" id="resultTitle">Generated Password</div>
+            <div class="result-time" id="resultTime"></div>
+            <div class="result-password" id="resultPassword"></div>
+            <div class="result-error-text" id="resultError"></div>
+            <button class="copy-btn" id="copyBtn" style="display: none;">Copy to Clipboard</button>
+        </div>
+
+        <footer class="footer">
+            <p>Author: <a href="#" target="_blank">Rayyi-Tech</a> | Version: v0.1.0</p>
+            <p style="margin-top: 4px;">Tech Stack: <span style="color: rgba(255,255,255,0.5);">Rust</span> / <span style="color: rgba(255,255,255,0.5);">Actix-web</span></p>
+            <p style="margin-top: 4px; font-size: 11px;">© 2026 Rayyi-Tech. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const translations = {
+            en: {
+                pageTitle: 'Dynamic Password Generator',
+                title: 'Dynamic Password Generator',
+                subtitle: 'UTC-based time-sensitive password generation',
+                labelName: 'Name',
+                tooltipName: 'Select from predefined names or enter a custom value',
+                placeholderName: 'Enter or select a name...',
+                selectName: 'Select or enter a name...',
+                labelSalt: 'Salt',
+                placeholderSalt: 'Enter the salt value...',
+                labelOffset: 'Offset (hours)',
+                tooltipOffset: 'Relative to UTC time, supports negative values',
+                placeholderOffset: 'e.g., -1, 0, 1',
+                labelTime: 'Time (YYYYMMDDHH)',
+                tooltipTime: 'Format: YYYYMMDDHH (10 digits), e.g., 2026010814',
+                placeholderTime: 'YYYYMMDDHH',
+                sectionOptional: 'Optional Parameters',
+                calculateBtn: 'Calculate Password',
+                addSaltBtn: 'Save name-salt pair',
+                saltError: 'Salt is required',
+                mutualError: 'Offset and time cannot be specified simultaneously',
+                resultTitle: 'Generated Password',
+                timeSeed: 'Time seed (UTC):',
+                copyBtn: 'Copy to Clipboard',
+                copied: 'Copied!',
+                unknownError: 'Unknown error',
+                failedError: 'Failed to generate password: ',
+                loadingSalts: 'Loading...',
+                noSalts: 'No entries available',
+                nameAdded: 'Name-salt pair added successfully',
+                nameUpdated: 'Salt updated successfully',
+                nameRemoved: 'Name-salt pair removed',
+                refreshBtn: 'Refresh',
+                refreshed: 'Salts refreshed successfully',
+                nameAlreadyExists: 'Name already exists'
+            },
+            zh: {
+                pageTitle: '动态密码生成器',
+                title: '动态密码生成器',
+                subtitle: '基于UTC的时间敏感密码生成',
+                labelName: '名称',
+                tooltipName: '从预定义的名称中选择或输入自定义名称',
+                placeholderName: '输入或选择名称...',
+                selectName: '选择或输入名称...',
+                labelSalt: '盐值',
+                placeholderSalt: '输入盐值...',
+                labelOffset: '偏移量 (小时)',
+                tooltipOffset: '相对于UTC时间,支持负值',
+                placeholderOffset: '例如: -1, 0, 1',
+                labelTime: '时间 (YYYYMMDDHH)',
+                tooltipTime: '格式: YYYYMMDDHH (10位数字),例如: 2026010814',
+                placeholderTime: 'YYYYMMDDHH',
+                sectionOptional: '可选参数',
+                calculateBtn: '生成密码',
+                addSaltBtn: '保存名称-盐值对',
+                saltError: '盐值是必填项',
+                mutualError: '偏移量和时间不能同时指定',
+                resultTitle: '生成的密码',
+                timeSeed: '时间种子 (UTC): ',
+                copyBtn: '复制到剪贴板',
+                copied: '已复制!',
+                unknownError: '未知错误',
+                failedError: '生成密码失败: ',
+                loadingSalts: '加载中...',
+                noSalts: '没有可用的条目',
+                nameAdded: '名称-盐值对添加成功',
+                nameUpdated: '盐值修改成功',
+                nameRemoved: '名称-盐值对已删除',
+                refreshBtn: '刷新',
+                refreshed: '重新加载名称盐值成功',
+                nameAlreadyExists: '名称已存在'
+            }
+        };
+
+        let currentLang = 'en';
+        let currentTimeSeed = '';
+        let cachedSalts = [];
+
+        function detectBrowserLang() {
+            const navLang = navigator.language || navigator.userLanguage;
+            if (navLang.startsWith('zh')) {
+                return 'zh';
+            }
+            return 'en';
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            document.title = t.pageTitle;
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('labelName').textContent = t.labelName;
+            document.getElementById('tooltipName').setAttribute('data-tooltip', t.tooltipName);
+
+            document.getElementById('labelSalt').textContent = t.labelSalt;
+            document.getElementById('saltInput').placeholder = t.placeholderSalt;
+            document.getElementById('labelOffset').textContent = t.labelOffset;
+            document.getElementById('tooltipOffset').setAttribute('data-tooltip', t.tooltipOffset);
+            document.getElementById('offset').placeholder = t.placeholderOffset;
+            document.getElementById('labelTime').textContent = t.labelTime;
+            document.getElementById('tooltipTime').setAttribute('data-tooltip', t.tooltipTime);
+            document.getElementById('time').placeholder = t.placeholderTime;
+            document.getElementById('sectionOptional').textContent = t.sectionOptional;
+            document.getElementById('calculateBtn').innerHTML = '<span>' + t.calculateBtn + '</span>';
+            document.getElementById('addSaltBtnText').textContent = t.addSaltBtn;
+            document.getElementById('saltError').textContent = t.saltError;
+            document.getElementById('mutualError').textContent = t.mutualError;
+            document.getElementById('resultTitle').textContent = t.resultTitle;
+            document.getElementById('copyBtn').textContent = t.copyBtn;
+
+            const resultTime = document.getElementById('resultTime');
+            if (currentTimeSeed) {
+                resultTime.textContent = t.timeSeed + ' ' + currentTimeSeed;
+            }
+
+            document.getElementById('langToggleBtn').textContent = lang === 'en' ? '中文' : 'English';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const nameInput = document.getElementById('nameInput');
+            const nameDropdownBtn = document.getElementById('nameDropdownBtn');
+            const nameDropdown = document.getElementById('nameDropdown');
+            const saltInput = document.getElementById('saltInput');
+            const offset = document.getElementById('offset');
+            const time = document.getElementById('time');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const addSaltBtn = document.getElementById('addSaltBtn');
+            const result = document.getElementById('result');
+            const resultTime = document.getElementById('resultTime');
+            const resultPassword = document.getElementById('resultPassword');
+            const resultError = document.getElementById('resultError');
+            const copyBtn = document.getElementById('copyBtn');
+            const saltError = document.getElementById('saltError');
+            const mutualError = document.getElementById('mutualError');
+            const langToggleBtn = document.getElementById('langToggleBtn');
+
+            setLang(detectBrowserLang());
+
+            langToggleBtn.addEventListener('click', () => {
+                setLang(currentLang === 'en' ? 'zh' : 'en');
+            });
+
+            async function apiFetch(url, options = {}) {
+                const response = await fetch(url, options);
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    throw new Error('Unauthorized');
+                }
+                return response;
+            }
+
+            async function loadSalts() {
+                const t = translations[currentLang];
+                nameDropdown.innerHTML = '<div class="loading">' + t.loadingSalts + '</div>';
+                
+                try {
+                    const response = await apiFetch('/api/salts');
+                    const data = await response.json();
+                    
+                    cachedSalts = data.salts || [];
+                    
+                    nameDropdown.innerHTML = '';
+                    if (cachedSalts.length > 0) {
+                        cachedSalts.forEach(entry => {
+                            const option = createNameOption(entry);
+                            nameDropdown.appendChild(option);
+                        });
+                    } else {
+                        nameDropdown.innerHTML = '<div class="loading">' + t.noSalts + '</div>';
+                    }
+                } catch (error) {
+                    nameDropdown.innerHTML = '<div class="loading">' + t.noSalts + '</div>';
+                    console.error('Failed to load salts:', error);
+                }
+            }
+
+            function createNameOption(entry) {
+                const option = document.createElement('div');
+                option.className = 'name-dropdown-option';
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = 'name-option-text';
+                textSpan.textContent = entry.name;
+                option.appendChild(textSpan);
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'name-option-btn name-option-btn-remove';
+                removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeSalt(entry.name);
+                });
+                option.appendChild(removeBtn);
+                
+                option.addEventListener('click', () => {
+                    nameInput.value = entry.name;
+                    saltInput.value = entry.salt;
+                    closeDropdown();
+                    validateForm();
+                });
+                
+                return option;
+            }
+
+            async function addSalt() {
+                const t = translations[currentLang];
+                const name = nameInput.value.trim();
+                const salt = saltInput.value.trim();
+                
+                if (!name || !salt) {
+                    return;
+                }
+
+                try {
+                    const response = await apiFetch('/api/salts/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name, salt }),
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        loadSalts();
+                        validateForm();
+                        if (data.message && data.message.includes('updated')) {
+                            showToast(t.nameUpdated, 'success');
+                        } else {
+                            showToast(t.nameAdded, 'success');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to add salt:', error);
+                }
+            }
+
+            async function removeSalt(name) {
+                const t = translations[currentLang];
+                try {
+                    const response = await apiFetch('/api/salts/remove', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name }),
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        closeDropdown();
+                        if (nameInput.value === name) {
+                            nameInput.value = '';
+                            saltInput.value = '';
+                        }
+                        loadSalts();
+                        validateForm();
+                        showToast(t.nameRemoved, 'success');
+                    }
+                } catch (error) {
+                    console.error('Failed to remove salt:', error);
+                }
+            }
+
+            function openDropdown() {
+                nameDropdown.classList.add('show');
+                nameDropdownBtn.classList.add('open');
+            }
+
+            function closeDropdown() {
+                nameDropdown.classList.remove('show');
+                nameDropdownBtn.classList.remove('open');
+            }
+
+            loadSalts();
+
+            nameDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (nameDropdown.classList.contains('show')) {
+                    closeDropdown();
+                } else {
+                    openDropdown();
+                }
+            });
+
+            nameInput.addEventListener('focus', () => {
+                openDropdown();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!nameDropdown.contains(e.target) && !nameDropdownBtn.contains(e.target) && !nameInput.contains(e.target)) {
+                    closeDropdown();
+                }
+            });
+
+            addSaltBtn.addEventListener('click', () => {
+                addSalt();
+            });
+
+            saltInput.addEventListener('input', () => {
+                validateForm();
+            });
+
+            offset.addEventListener('input', () => {
+                validateForm();
+            });
+
+            time.addEventListener('input', () => {
+                validateForm();
+            });
+
+            function validateForm() {
+                let isValid = true;
+                const t = translations[currentLang];
+
+                const saltValue = saltInput.value.trim();
+                if (!saltValue) {
+                    saltError.classList.add('show');
+                    saltInput.classList.add('error');
+                    isValid = false;
+                } else {
+                    saltError.classList.remove('show');
+                    saltInput.classList.remove('error');
+                }
+
+                const offsetValue = offset.value.trim();
+                const timeValue = time.value.trim();
+                
+                if (offsetValue && timeValue) {
+                    mutualError.classList.add('show');
+                    offset.classList.add('error');
+                    time.classList.add('error');
+                    isValid = false;
+                } else {
+                    mutualError.classList.remove('show');
+                    offset.classList.remove('error');
+                    time.classList.remove('error');
+                }
+
+                calculateBtn.disabled = !isValid;
+                return isValid;
+            }
+
+            document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const t = translations[currentLang];
+
+                if (!validateForm()) return;
+
+                const saltValue = saltInput.value.trim();
+                const offsetValue = offset.value.trim() ? parseInt(offset.value) : undefined;
+                const timeValue = time.value.trim() || undefined;
+
+                calculateBtn.innerHTML = '<span class="loading-spinner"></span>';
+                calculateBtn.disabled = true;
+
+                try {
+                    const response = await apiFetch('/api/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            salt: saltValue,
+                            offset: offsetValue,
+                            time: timeValue,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    result.classList.remove('show', 'error', 'success');
+                    resultTime.textContent = '';
+                    resultPassword.textContent = '';
+                    resultError.textContent = '';
+                    copyBtn.style.display = 'none';
+
+                    if (data.success) {
+                        result.classList.add('show', 'success');
+                        currentTimeSeed = data.time_seed;
+                        resultTime.textContent = t.timeSeed + ' ' + currentTimeSeed;
+                        resultPassword.textContent = data.password;
+                        copyBtn.style.display = 'inline-block';
+                        copyBtn.textContent = t.copyBtn;
+                    } else {
+                        result.classList.add('show', 'error');
+                        resultError.textContent = data.error || t.unknownError;
+                    }
+                } catch (error) {
+                    result.classList.add('show', 'error');
+                    resultError.textContent = t.failedError + error.message;
+                } finally {
+                    calculateBtn.innerHTML = '<span>' + t.calculateBtn + '</span>';
+                    validateForm();
+                }
+            });
+
+            let copyTimeout = null;
+            copyBtn.addEventListener('click', () => {
+                const t = translations[currentLang];
+                const password = resultPassword.textContent;
+                if (password) {
+                    const copySuccess = () => {
+                        if (copyTimeout) {
+                            clearTimeout(copyTimeout);
+                        }
+                        copyBtn.textContent = t.copied;
+                        copyBtn.classList.add('copied');
+                        copyTimeout = setTimeout(() => {
+                            copyBtn.textContent = t.copyBtn;
+                            copyBtn.classList.remove('copied');
+                            copyTimeout = null;
+                        }, 2000);
+                    };
+
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(password).then(copySuccess).catch(() => {
+                            fallbackCopy(password, copySuccess);
+                        });
+                    } else {
+                        fallbackCopy(password, copySuccess);
+                    }
+                }
+            });
+
+            function fallbackCopy(text, callback) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    callback();
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                }
+                document.body.removeChild(textArea);
+            }
+
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = 'toast show ' + type;
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+
+            async function refreshSalts() {
+                const t = translations[currentLang];
+                try {
+                    const wasOpen = nameDropdown.classList.contains('show');
+                    closeDropdown();
+                    
+                    const response = await apiFetch('/api/salts/refresh', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        await loadSalts();
+                        if (wasOpen) {
+                            openDropdown();
+                        }
+                        showToast(t.refreshed, 'success');
+                    }
+                } catch (error) {
+                    console.error('Failed to refresh salts:', error);
+                }
+            }
+
+            const refreshSaltsBtn = document.getElementById('refreshSaltsBtn');
+            refreshSaltsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                refreshSalts();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dynamic Password Generator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='25' y='20' width='50' height='60' rx='8' fill='%23667eea'/><rect x='30' y='20' width='40' height='25' rx='8' fill='%23764ba2'/><path d='M40 65 Q50 75 60 65' stroke='%23ffffff' stroke-width='4' fill='none'/><rect x='42' y='50' width='16' height='20' fill='%23ffffff'/><rect x='46' y='54' width='8' height='8' rx='1' fill='%23667eea'/></svg>" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: gradientShift 8s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .lang-toggle {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .lang-toggle-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .lang-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-input:focus {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+
+        .form-input.error {
+            background: rgba(255, 107, 107, 0.2);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(238, 90, 90, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 90, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-toggle">
+            <button class="lang-toggle-btn" id="langToggleBtn">English</button>
+        </div>
+
+        <div class="header">
+            <h1 id="title">🔒 Login</h1>
+            <p id="subtitle">Enter the password to access the application</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" id="labelPassword">Password</label>
+                <input 
+                    type="password" 
+                    id="passwordInput" 
+                    class="form-input" 
+                    placeholder="Enter password..."
+                >
+                <div id="passwordError" class="error-message">Password is required</div>
+                <div id="loginError" class="error-message">Invalid password</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+                <span id="loginBtnText">Login</span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                pageTitle: 'Login - Dynamic Password Generator',
+                title: '🔒 Login',
+                subtitle: 'Enter the password to access the application',
+                labelPassword: 'Password',
+                placeholderPassword: 'Enter password...',
+                passwordError: 'Password is required',
+                loginError: 'Invalid password',
+                loginBtn: 'Login',
+                loginFailed: 'Login failed:'
+            },
+            zh: {
+                pageTitle: '登录 - 动态密码生成器',
+                title: '🔒 登录',
+                subtitle: '请输入密码以访问应用',
+                labelPassword: '密码',
+                placeholderPassword: '请输入密码...',
+                passwordError: '密码是必填项',
+                loginError: '密码错误',
+                loginBtn: '登录',
+                loginFailed: '登录失败: '
+            }
+        };
+
+        let currentLang = 'en';
+
+        function detectBrowserLang() {
+            const navLang = navigator.language || navigator.userLanguage;
+            if (navLang.startsWith('zh')) {
+                return 'zh';
+            }
+            return 'en';
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            document.title = t.pageTitle;
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('labelPassword').textContent = t.labelPassword;
+            document.getElementById('passwordInput').placeholder = t.placeholderPassword;
+            document.getElementById('passwordError').textContent = t.passwordError;
+            document.getElementById('loginError').textContent = t.loginError;
+            document.getElementById('loginBtnText').textContent = t.loginBtn;
+            document.getElementById('langToggleBtn').textContent = lang === 'en' ? '中文' : 'English';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('passwordInput');
+            const loginBtn = document.getElementById('loginBtn');
+            const passwordError = document.getElementById('passwordError');
+            const loginError = document.getElementById('loginError');
+
+            setLang(detectBrowserLang());
+
+            document.getElementById('langToggleBtn').addEventListener('click', () => {
+                setLang(currentLang === 'en' ? 'zh' : 'en');
+            });
+
+            passwordInput.addEventListener('input', () => {
+                validateForm();
+            });
+
+            function validateForm() {
+                let isValid = true;
+
+                const passwordValue = passwordInput.value.trim();
+                if (!passwordValue) {
+                    passwordError.classList.add('show');
+                    passwordInput.classList.add('error');
+                    isValid = false;
+                } else {
+                    passwordError.classList.remove('show');
+                    passwordInput.classList.remove('error');
+                }
+
+                loginBtn.disabled = !isValid;
+                return isValid;
+            }
+
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                if (!validateForm()) return;
+
+                loginBtn.innerHTML = '<span class="loading-spinner"></span>';
+                loginBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            password: passwordInput.value.trim(),
+                        }),
+                    });
+
+                    const contentType = response.headers.get('content-type');
+                    let data;
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        const text = await response.text();
+                        throw new Error('Invalid response: ' + text.substring(0, 100));
+                    }
+
+                    if (data.success) {
+                        window.location.href = '/';
+                    } else {
+                        loginError.classList.add('show');
+                        passwordInput.classList.add('error');
+                    }
+                } catch (error) {
+                    loginError.textContent = translations[currentLang].loginFailed + ' ' + error.message;
+                    loginError.classList.add('show');
+                } finally {
+                    loginBtn.innerHTML = '<span id="loginBtnText">' + translations[currentLang].loginBtn + '</span>';
+                    validateForm();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
